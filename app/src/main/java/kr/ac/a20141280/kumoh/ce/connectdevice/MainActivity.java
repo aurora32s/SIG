@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private BluetoothAdapter mBluetoothAdapter;
     static final int REQUEST_ENABLE_BY = 1;
-    private Handler mHandler;
+    //private Handler mHandler;
     private BluetoothLeScanner mLEScanner;
     private static final long SCAN_PERIOD = 10000;
     private ScanSettings settings;
@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         setContentView(R.layout.activity_main);
         //getActionBar().setTitle(R.string.title_devices);
 
-        mHandler = new Handler();
+        //mHandler = new Handler();
 
         if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             if(!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)){
@@ -155,22 +155,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void scanLeDevice(final Boolean enable){
         if(enable){
-            mHandler.postDelayed(new Runnable() {
+/*            mHandler.postDelayed(new Runnable() {         // 스캔 시작 후 10초(SCAN_PERIOD) 뒤에 스캔이 자동으로 중지됨. 스캔이 중지되면 ble 디바이스가 켜져도 어플은 인지못함.
                 @Override
                 public void run() {
                     mLEScanner.stopScan(mLeScanCallBack);
                 }
-            },SCAN_PERIOD);
+            },SCAN_PERIOD);*/
 
             ScanFilter scanFilter = new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString("ffffffff-ffff-ffff-ffff-fffffffffff0")).build();     // uuid로 필터링
 
             filters = new ArrayList<ScanFilter>();
             filters.add(scanFilter);
-
             settings = new ScanSettings.Builder().build();
-
-            //mBluetoothLeScanner.startScan(scanFilters, scanSettings, scanCallback);
-            //test _________________________________________________________________________________
 
             mLEScanner.startScan(filters,settings,mLeScanCallBack);
         }
@@ -185,7 +181,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
-
+Log.i("seung", "im in scan callback");
             BluetoothDevice device = result.getDevice();
 
             int deviceMajorClass = device.getBluetoothClass().getMajorDeviceClass();
@@ -219,15 +215,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         BluetoothDevice device;
 
         public DeviceInfo(String name, String address,int deviceType, BluetoothDevice device){
-            this.deviceName=name;
-            this.deviceAddress=address;
+            this.deviceName = name;
+            this.deviceAddress = address;
             this.deviceType = deviceType;
             this.device = device;
         }
 
-        public String getName(){return this.deviceName;}
-        public int getDeviceType(){return this.deviceType;}
-        public BluetoothDevice getDevice(){return this.device;}
+        public String getName(){ return this.deviceName; }
+        public int getDeviceType(){ return this.deviceType; }
+        public BluetoothDevice getDevice(){ return this.device; }
     }
 
     static class DeviceViewHolder{

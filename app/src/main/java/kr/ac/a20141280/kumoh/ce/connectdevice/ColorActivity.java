@@ -98,12 +98,17 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 receivedData = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);            // BluetoothLeService에서 넘어온 값(=라즈베리파이로부터 넘어온 값) 처리
 
-                String[] arr = receivedData.split(",");
+                String[] rgbArr = new String[3];                // 받은 string 데이터를 rgb로 쪼개서 저장
+                rgbArr[0] = receivedData.substring(0, 2);
+                rgbArr[1] = receivedData.substring(2, 4);
+                rgbArr[2] = receivedData.substring(4, 6);
 
-                for(int i=0; i<arr.length; i++)           // string형의 color값들에 0x붙여서 16진수화
-                    arr[i] = "0x" + arr[i];
+                for(int i=0; i<rgbArr.length; i++)              // string형의 color값들에 0x붙여서 16진수화
+                    rgbArr[i] = "0x" + rgbArr[i];
 
-                int oldColor = Color.argb(Integer.decode("0xff"), Integer.decode(arr[0]), Integer.decode(arr[1]), Integer.decode(arr[2]));      // 16진수->10진수로 변환
+                int oldColor = Color.argb(Integer.decode("0xff"), Integer.decode(rgbArr[0]), Integer.decode(rgbArr[1]), Integer.decode(rgbArr[2]));      // 16진수->10진수로 변환
+
+                Log.i("seung", Integer.toString(oldColor));
 
                 picker.setColor(oldColor);
                 picker.setOldCenterColor(oldColor);            // 이전 컬러값을 UI에 반영
@@ -202,6 +207,7 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
 
     @Override
     public void onColorChanged(int color) {
+        Log.i("seung", "new color arrived! >> " + Integer.toString(color));
         characteristic.setValue(Integer.toHexString(color));
         mBluetoothLeService.writeCharacteristic(characteristic);
     }
