@@ -24,6 +24,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -43,9 +45,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private BluetoothAdapter mBluetoothAdapter;
     static final int REQUEST_ENABLE_BY = 1;
-    //private Handler mHandler;
     private BluetoothLeScanner mLEScanner;
-    private static final long SCAN_PERIOD = 10000;
     private ScanSettings settings;
     private List<ScanFilter> filters;
 
@@ -61,8 +61,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         //getActionBar().setTitle(R.string.title_devices);
-
-        //mHandler = new Handler();
 
         if(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             if(!ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)){
@@ -155,13 +153,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void scanLeDevice(final Boolean enable){
         if(enable){
-/*            mHandler.postDelayed(new Runnable() {         // 스캔 시작 후 10초(SCAN_PERIOD) 뒤에 스캔이 자동으로 중지됨. 스캔이 중지되면 ble 디바이스가 켜져도 어플은 인지못함.
-                @Override
-                public void run() {
-                    mLEScanner.stopScan(mLeScanCallBack);
-                }
-            },SCAN_PERIOD);*/
-
             ScanFilter scanFilter = new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString("ffffffff-ffff-ffff-ffff-fffffffffff0")).build();     // uuid로 필터링
 
             filters = new ArrayList<ScanFilter>();
@@ -181,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
-Log.i("seung", "im in scan callback");
+Log.i("seung", "in call back, callBackType - " + callbackType);
             BluetoothDevice device = result.getDevice();
 
             int deviceMajorClass = device.getBluetoothClass().getMajorDeviceClass();
@@ -273,5 +264,34 @@ Log.i("seung", "im in scan callback");
 
             return v;
         }
+    }
+
+    //메뉴 버튼을 위한 코드
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_bleOn) {
+            Toast.makeText(getApplicationContext(), "BLE on", Toast.LENGTH_SHORT).show();
+
+            return true;
+        }
+        else if (id == R.id.action_setProgram) {
+            Toast.makeText(getApplicationContext(), "program setting", Toast.LENGTH_SHORT).show();
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }

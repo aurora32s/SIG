@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="kr.ac.kumoh.ce.s20110619.smartlighting.MainActivity">
+    <item
+        android:id="@+id/action_bleOn"
+        android:orderInCategory="100"
+        android:title="BLE on"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_setProgram"
+        android:orderInCategory="100"
+        android:title="program setting"
+        app:showAsAction="never" />
+</menu>

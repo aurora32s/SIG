@@ -25,8 +25,6 @@ import android.widget.Toast;
 import com.larswerkman.holocolorpicker.ColorPicker;
 import com.larswerkman.holocolorpicker.ColorPicker.OnColorChangedListener;
 import com.larswerkman.holocolorpicker.SVBar;
-
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -107,8 +105,6 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
                     rgbArr[i] = "0x" + rgbArr[i];
 
                 int oldColor = Color.argb(Integer.decode("0xff"), Integer.decode(rgbArr[0]), Integer.decode(rgbArr[1]), Integer.decode(rgbArr[2]));      // 16진수->10진수로 변환
-
-                Log.i("seung", Integer.toString(oldColor));
 
                 picker.setColor(oldColor);
                 picker.setOldCenterColor(oldColor);            // 이전 컬러값을 UI에 반영
@@ -207,9 +203,18 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
 
     @Override
     public void onColorChanged(int color) {
-        Log.i("seung", "new color arrived! >> " + Integer.toString(color));
-        characteristic.setValue(Integer.toHexString(color));
+        //테스트 코드
+        //String tmp = Integer.toHexString(color);
+        //tmp = tmp.substring(2, 8);
+        //Log.i("seung", "modi - " + tmp.toString());
+
+        //변경 후 코드
+        characteristic.setValue(Integer.toHexString(color).substring(2, 8));
         mBluetoothLeService.writeCharacteristic(characteristic);
+
+        //변경 전 코드
+        //characteristic.setValue(Integer.toHexString(color));
+        //mBluetoothLeService.writeCharacteristic(characteristic);
     }
 
     // Demonstrates how to iterate through the supported GATT Services/Characteristics.

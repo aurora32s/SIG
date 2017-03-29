@@ -67,7 +67,6 @@ public class BluetoothLeService extends Service {
                 mConnectionState = STATE_CONNECTED;
                 broadcastUpdate(intentAction);
                 Log.i(TAG, "Connected to GATT server.");
-                Log.i("seung", "in conn");
                 // Attempts to discover services after successful connection.
                 Log.i(TAG, "Attempting to start service discovery:" +
                         mBluetoothGatt.discoverServices());
@@ -132,7 +131,6 @@ public class BluetoothLeService extends Service {
             format = BluetoothGattCharacteristic.FORMAT_UINT8;
             Log.d(TAG, "Heart rate format UINT8.");
         }
-        Log.i("seung", "data might exist");
 
         // This is special handling for the Heart Rate Measurement profile.  Data parsing is
         // carried out as per profile specifications:
