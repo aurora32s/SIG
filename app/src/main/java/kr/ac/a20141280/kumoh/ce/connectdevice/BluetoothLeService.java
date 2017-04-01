@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collector;
 
-import yuku.ambilwarna.AmbilWarnaDialog;
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a

@@ -209,12 +209,12 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
         //Log.i("seung", "modi - " + tmp.toString());
 
         //변경 후 코드
-        characteristic.setValue(Integer.toHexString(color).substring(2, 8));
-        mBluetoothLeService.writeCharacteristic(characteristic);
+        //characteristic.setValue(Integer.toHexString(color).substring(2, 8));
+        //mBluetoothLeService.writeCharacteristic(characteristic);
 
         //변경 전 코드
-        //characteristic.setValue(Integer.toHexString(color));
-        //mBluetoothLeService.writeCharacteristic(characteristic);
+        characteristic.setValue(Integer.toHexString(color));
+        mBluetoothLeService.writeCharacteristic(characteristic);
     }
 
     // Demonstrates how to iterate through the supported GATT Services/Characteristics.
