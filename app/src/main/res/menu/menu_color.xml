@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="kr.ac.kumoh.ce.s20110619.smartlighting.ColorActivity">
+    <item
+        android:id="@+id/action_setPreset"
+        android:orderInCategory="100"
+        android:title="Save preset"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_getPreset"
+        android:orderInCategory="100"
+        android:title="Load preset"
+        app:showAsAction="never" />
+</menu>

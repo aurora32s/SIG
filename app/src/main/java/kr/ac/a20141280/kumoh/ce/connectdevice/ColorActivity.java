@@ -11,12 +11,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,6 +29,10 @@ import android.widget.Toast;
 import com.larswerkman.holocolorpicker.ColorPicker;
 import com.larswerkman.holocolorpicker.ColorPicker.OnColorChangedListener;
 import com.larswerkman.holocolorpicker.SVBar;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -263,5 +271,71 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
         return intentFilter;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_color, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_setPreset) {
+            JSONArray presetList = new JSONArray();
+
+            SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
+            SharedPreferences.Editor editor = pref.edit();
+
+            if(pref.getString("preset", null) == null) {
+                presetList.put(String.valueOf(picker.getColor()));
+                editor.putString("preset", presetList.toString());
+                Log.i("seung", "here is 'if' - json array : " + presetList.toString());
+                Log.i("seung",  "pref : " + pref.getString("preset", null));
+            }
+            else{
+                try {
+                    String tmpStr = pref.getString("preset", "");
+                    Log.i("seung", "there is preference " + pref.getString("preset", null));
+
+                    JSONArray tmpArr = new JSONArray(tmpStr);
+                    tmpArr.put(String.valueOf(picker.getColor()));
+                    editor.putString("preset", tmpArr.toString());
+                } catch (JSONException e){
+                    e.printStackTrace();
+                    Log.i("seung", "error in preference " + e.toString());
+                }
+            }
+            editor.commit();
+
+
+            AlertDialog.Builder setPresetDialog = new AlertDialog.Builder(this);
+            setPresetDialog.setMessage("Preset is saved.");
+            setPresetDialog.setPositiveButton("Confirm", null);
+
+            AlertDialog setPersetAlert = setPresetDialog.create();
+            setPersetAlert.setTitle("Preset");
+            setPersetAlert.show();
+        }
+        else if (id == R.id.action_getPreset) {
+            SharedPreferences pref = getSharedPreferences("preset", MODE_PRIVATE);
+            String strList = pref.getString("preset", "");
+            try {
+                JSONArray tmpArr = new JSONArray(strList);
+                for(int i=0; i<tmpArr.length(); i++)
+                    Log.i("seung", "json : " + tmpArr.optString(i));
+            } catch(JSONException e) {
+                e.printStackTrace();
+                Log.i("seung", "in getPreset error : " + e.toString());
+            }
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }

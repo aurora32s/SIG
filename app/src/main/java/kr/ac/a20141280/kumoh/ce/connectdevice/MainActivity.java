@@ -297,11 +297,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             LightUpTask lightUpTask = new LightUpTask();
             lightUpTask.execute();
         }
-        else if (id == R.id.action_setProgram) {
-            Toast.makeText(getApplicationContext(), "program setting", Toast.LENGTH_SHORT).show();
-
-            return true;
-        }
 
         return super.onOptionsItemSelected(item);
     }
