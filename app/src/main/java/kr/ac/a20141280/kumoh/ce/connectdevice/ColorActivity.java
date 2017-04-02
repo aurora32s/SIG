@@ -293,20 +293,17 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
             SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
             SharedPreferences.Editor editor = pref.edit();
 
-            if(pref.getString("preset", null) == null) {
+            if(pref.getString("preset", null) == null) {                // 저장된 쉐어드프리퍼런스가 없으면 새로운 배열을 쉐어드프리퍼런스에 저장
                 presetList.put(String.valueOf(picker.getColor()));
                 editor.putString("preset", presetList.toString());
-                Log.i("seung", "here is 'if' - json array : " + presetList.toString());
-                Log.i("seung",  "pref : " + pref.getString("preset", null));
             }
-            else{
+            else{                                                          // 저장된 쉐어드프리퍼런스가 있으면 기존의 배열을 꺼내 저장
                 try {
-                    String tmpStr = pref.getString("preset", "");
-                    Log.i("seung", "there is preference " + pref.getString("preset", null));
+                    String presetStr = pref.getString("preset", null);
+                    presetList = new JSONArray(presetStr);
 
-                    JSONArray tmpArr = new JSONArray(tmpStr);
-                    tmpArr.put(String.valueOf(picker.getColor()));
-                    editor.putString("preset", tmpArr.toString());
+                    presetList.put(String.valueOf(picker.getColor()));
+                    editor.putString("preset", presetList.toString());
                 } catch (JSONException e){
                     e.printStackTrace();
                     Log.i("seung", "error in preference " + e.toString());
