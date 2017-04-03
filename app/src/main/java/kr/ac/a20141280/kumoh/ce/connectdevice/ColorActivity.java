@@ -2,6 +2,7 @@ package kr.ac.a20141280.kumoh.ce.connectdevice;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.ScanFilter;
@@ -17,14 +18,33 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonRequest;
+import com.android.volley.toolbox.Volley;
 import com.larswerkman.holocolorpicker.ColorPicker;
 import com.larswerkman.holocolorpicker.ColorPicker.OnColorChangedListener;
 import com.larswerkman.holocolorpicker.SVBar;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +75,10 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
     private final String LIST_UUID = "UUID";
     private String receivedData;
     private BluetoothGattCharacteristic characteristic;
+
+    protected ArrayList<CaseInfo> mArray = new ArrayList<CaseInfo>();
+    protected ListView mList;
+    protected CaseAdapter mAdapter;
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -103,9 +127,9 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
 
                 for(int i=0; i<rgbArr.length; i++)              // string형의 color값들에 0x붙여서 16진수화
                     rgbArr[i] = "0x" + rgbArr[i];
+                Log.i("ddd", rgbArr[0] + "  " + rgbArr[1] + "  " + rgbArr[2]);
 
                 int oldColor = Color.argb(Integer.decode("0xff"), Integer.decode(rgbArr[0]), Integer.decode(rgbArr[1]), Integer.decode(rgbArr[2]));      // 16진수->10진수로 변환
-
                 picker.setColor(oldColor);
                 picker.setOldCenterColor(oldColor);            // 이전 컬러값을 UI에 반영
             }
@@ -132,6 +156,157 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
         setTitle(mDeviceName);
 
         picker.setOnColorChangedListener(this);         // 컬러 선택시 컬러값 전송을 위한 리스너 --seung
+
+        //Case ListView
+        mAdapter = new CaseAdapter(this,R.layout.case_item);
+        mList = (ListView)findViewById(R.id.case_list);
+        mList.setAdapter(mAdapter);
+
+        mList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                CaseInfo caseInfo = mArray.get(i);
+                toast(Integer.toString(caseInfo.getId()));
+                requestCaseInfo(caseInfo.getId());
+
+            }
+        });
+
+        requestCase();
+
+    }
+
+    protected void requestCaseInfo(int caseID){
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url = "http://202.31.200.180:3000/API/case/"+Integer.toString(caseID);
+
+        JsonArrayRequest request = new JsonArrayRequest(url,
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+
+                        for(int i =0 ; i<response.length();i++){
+                            try{
+                                JSONObject object = response.getJSONObject(i);
+
+
+                            }catch (JSONException e){
+                                Log.i("JsonError",e.getMessage().toString());
+                            }
+
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.i("VolleyError",error.getMessage().toString());
+            }
+        });
+
+        queue.add(request);
+
+    }
+
+    public class CaseInfo{
+        int id;
+        String name;
+
+        public CaseInfo(int id, String name){
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId(){return this.id;}
+        public String getName(){return this.name;}
+    }
+
+    protected class CaseViewHolder{
+        TextView caseName;
+    }
+
+    public class CaseAdapter extends ArrayAdapter<CaseInfo>{
+
+        private LayoutInflater mInflater = null;
+
+        public CaseAdapter(Context context, int resource){
+            super(context,resource);
+            mInflater = LayoutInflater.from(context);
+        }
+
+        @Override
+        public int getCount(){return mArray.size();}
+
+        @Override
+        public View getView(int position, View v, ViewGroup parent){
+
+            CaseViewHolder viewHolder;
+
+            if(v==null){
+                v = mInflater.inflate(R.layout.case_item,parent,false);
+
+                viewHolder = new CaseViewHolder();
+                viewHolder.caseName = (TextView)v.findViewById(R.id.caseName);
+
+                v.setTag(viewHolder);
+            }
+            else{
+                viewHolder = (CaseViewHolder)v.getTag();
+            }
+
+            CaseInfo info = mArray.get(position);
+
+            if(info != null){
+                viewHolder.caseName.setText(info.getName());
+            }
+
+            return v;
+        }
+    }
+
+    public void toast(String message){
+        Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+    }
+
+    private void requestCase(){
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url ="http://202.31.200.180:3000/API/case";
+
+        //Toast.makeText(getApplicationContext(),"RequestCase",Toast.LENGTH_LONG).show();
+
+        JsonArrayRequest request = new JsonArrayRequest(url,
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        toast("Request JsonArrayRequest");
+                        Log.i("OnResponse",response.toString());
+
+                        for(int i =0 ; i<response.length();i++){
+                            try{
+                                JSONObject object = response.getJSONObject(i);
+
+                                int id=object.getInt("case_id");
+                                String name=object.getString("case_name");
+
+                                mArray.add(new CaseInfo(id,name));
+
+                            }catch (JSONException e){
+                                Log.i("JsonError",e.getMessage().toString());
+                            }
+
+                            mAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.i("VolleyError",error.getMessage().toString());
+            }
+        });
+
+        queue.add(request);
     }
 
     private class ConnectingTask extends AsyncTask<Void, Void, Void> {          // 프로그레스 다이얼로그 사용
@@ -208,13 +383,13 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
         //tmp = tmp.substring(2, 8);
         //Log.i("seung", "modi - " + tmp.toString());
 
-        //변경 후 코드
-        characteristic.setValue(Integer.toHexString(color).substring(2, 8));
-        mBluetoothLeService.writeCharacteristic(characteristic);
+//        //변경 후 코드
+//        characteristic.setValue(Integer.toHexString(color).substring(2, 8));
+//        mBluetoothLeService.writeCharacteristic(characteristic);
 
-        //변경 전 코드
-        //characteristic.setValue(Integer.toHexString(color));
-        //mBluetoothLeService.writeCharacteristic(characteristic);
+       // 변경 전 코드
+        characteristic.setValue(Integer.toHexString(color));
+        mBluetoothLeService.writeCharacteristic(characteristic);
     }
 
     // Demonstrates how to iterate through the supported GATT Services/Characteristics.

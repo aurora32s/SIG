@@ -20,6 +20,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:bar_thickness="15dp"
-        app:bar_length="320dp" />
+        app:bar_length="320dp"
+        android:layout_gravity="center_horizontal"/>
+
 
 </LinearLayout>
