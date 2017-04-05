@@ -7,6 +7,12 @@
     android:background="@drawable/shape"
     android:gravity="center">
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/circle"
+        android:id="@+id/caseButton"/>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

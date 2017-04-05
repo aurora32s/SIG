@@ -21,20 +21,18 @@ import android.os.IBinder;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-<<<<<<< HEAD
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
-=======
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
->>>>>>> origin/master
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,10 +51,7 @@ import com.larswerkman.holocolorpicker.SVBar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-<<<<<<< HEAD
 import org.json.JSONObject;
-=======
->>>>>>> origin/master
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,12 +84,9 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
     private String receivedData;
     private BluetoothGattCharacteristic characteristic;
 
-    protected ArrayList<CaseInfo> mArray = new ArrayList<CaseInfo>();
-    protected ListView mList;
-    protected CaseAdapter mAdapter;
-
-    SharedPreferences pref;
-    SharedPreferences.Editor editor;
+    public ArrayList<CaseInfo> mArray = new ArrayList<CaseInfo>();
+    public ListView mList;
+    public CaseAdapter mAdapter;
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -173,76 +165,24 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
 
         picker.setOnColorChangedListener(this);         // 컬러 선택시 컬러값 전송을 위한 리스너 --seung
 
-        pref = getApplication().getSharedPreferences("pref",getApplicationContext().MODE_PRIVATE);
-        editor = pref.edit();
-
-        //Case ListView
-        mAdapter = new CaseAdapter(this,R.layout.case_item);
-        mList = (ListView)findViewById(R.id.case_list);
-        mList.setAdapter(mAdapter);
-
-        mList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
-                CaseInfo caseInfo = mArray.get(i);
-                toast(Integer.toString(caseInfo.getId()));
-                requestCaseInfo(caseInfo.getId());
-
-            }
-        });
-
-        //requestCase();
-
-    }
-
-    protected void requestCaseInfo(int caseID){
-
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "http://202.31.200.180:3000/API/case/"+Integer.toString(caseID);
-
-        JsonArrayRequest request = new JsonArrayRequest(url,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-
-                        for(int i =0 ; i<response.length();i++){
-                            try{
-                                JSONObject object = response.getJSONObject(i);
-
-
-                            }catch (JSONException e){
-                                Log.i("JsonError",e.getMessage().toString());
-                            }
-
-                        }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.i("VolleyError",error.getMessage().toString());
-            }
-        });
-
-        queue.add(request);
-
     }
 
     public class CaseInfo{
-        int id;
+        int rgb;
         String name;
 
-        public CaseInfo(int id, String name){
-            this.id = id;
+        public CaseInfo(int rgb, String name){
+            this.rgb = rgb;
             this.name = name;
         }
 
-        public int getId(){return this.id;}
+        public int getRGB(){return this.rgb;}
         public String getName(){return this.name;}
     }
 
     protected class CaseViewHolder{
         TextView caseName;
+        Button caseColor;
     }
 
     public class CaseAdapter extends ArrayAdapter<CaseInfo>{
@@ -267,6 +207,7 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
 
                 viewHolder = new CaseViewHolder();
                 viewHolder.caseName = (TextView)v.findViewById(R.id.caseName);
+                viewHolder.caseColor = (Button)v.findViewById(R.id.caseButton);
 
                 v.setTag(viewHolder);
             }
@@ -277,6 +218,7 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
             CaseInfo info = mArray.get(position);
 
             if(info != null){
+                viewHolder.caseColor.setBackgroundColor(info.getRGB());
                 viewHolder.caseName.setText(info.getName());
             }
 
@@ -286,20 +228,6 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
 
     public void toast(String message){
         Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
-    }
-
-    private void requestCase(){
-
-        String strList = pref.getString("preset","");
-        try{
-            JSONArray tmpArr = new JSONArray(strList);
-            for(int i=0;i<tmpArr.length();i++){
-                Log.i("JSONArray","json : "+tmpArr.optString(i));
-            }
-        }catch (JSONException e){
-            e.printStackTrace();
-            Log.i("JSONException","Error : "+e.toString());
-        }
     }
 
     private class ConnectingTask extends AsyncTask<Void, Void, Void> {          // 프로그레스 다이얼로그 사용
@@ -376,19 +304,17 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
         //tmp = tmp.substring(2, 8);
         //Log.i("seung", "modi - " + tmp.toString());
 
-<<<<<<< HEAD
 //        //변경 후 코드
 //        characteristic.setValue(Integer.toHexString(color).substring(2, 8));
 //        mBluetoothLeService.writeCharacteristic(characteristic);
 
        // 변경 전 코드
-=======
+
         //변경 후 코드
         //characteristic.setValue(Integer.toHexString(color).substring(2, 8));
         //mBluetoothLeService.writeCharacteristic(characteristic);
 
         //변경 전 코드
->>>>>>> origin/master
         characteristic.setValue(Integer.toHexString(color));
         mBluetoothLeService.writeCharacteristic(characteristic);
     }
@@ -506,23 +432,40 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
             getPresetDialogBuilder.setTitle("Choose preset.");
 
             // 어댑터에 쉐어드프리퍼런스의 저장된 값들 넣음
-            final ArrayAdapter<String> adapter = new ArrayAdapter<String>(ColorActivity.this, android.R.layout.select_dialog_singlechoice);
+//            final ArrayAdapter<String> adapter = new ArrayAdapter<String>(ColorActivity.this, android.R.layout.select_dialog_singlechoice);
+
+            LayoutInflater inflater = this.getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.case_list,null);
+            mAdapter = new CaseAdapter(this, R.layout.case_item);
+            mList = (ListView)dialogView.findViewById(R.id.caselist);
+            mList.setAdapter(mAdapter);
+
+            mList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    picker.setColor(mArray.get(i).getRGB());
+                    characteristic.setValue(Integer.toHexString(mArray.get(i).getRGB()));
+                    mBluetoothLeService.writeCharacteristic(characteristic);
+                }
+            });
+
             try {
                 for (int i = 0; i < presetList.length(); i++) {
-                    adapter.add(presetList.get(i).toString());
+                    mArray.add(new CaseInfo(Integer.parseInt(presetList.get(i).toString()),Integer.toString(i)));
                 }
             } catch(JSONException e) {
                 e.printStackTrace();
                 Log.i("seung", "json error - " + e.toString());
             }
 
+            getPresetDialogBuilder.setView(dialogView);
 
-            // 어댑터를 다이얼로그에 세팅
-            getPresetDialogBuilder.setAdapter(adapter, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {           // 다이얼로그 선택에 따른 이벤트 처리
-                    picker.setColor(Integer.valueOf(adapter.getItem(id)));
-                }
-            });
+//            // 어댑터를 다이얼로그에 세팅
+//            getPresetDialogBuilder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+//                public void onClick(DialogInterface dialog, int id) {           // 다이얼로그 선택에 따른 이벤트 처리
+//                    picker.setColor(Integer.valueOf(adapter.getItem(id)));
+//                }
+//            });
 
             // cancle 버튼 추가
             getPresetDialogBuilder.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
@@ -530,12 +473,6 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
                     dialog.dismiss();
                 }
             });
-
-
-
-
-
-
 
 
             // 다이얼로그 빌더를 다이얼로그에 세팅
