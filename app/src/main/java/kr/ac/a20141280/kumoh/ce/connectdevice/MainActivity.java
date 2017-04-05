@@ -2,6 +2,7 @@ package kr.ac.a20141280.kumoh.ce.connectdevice;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -15,6 +16,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.ParcelUuid;
 import android.support.annotation.NonNull;
@@ -34,6 +36,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -154,9 +163,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private void scanLeDevice(final Boolean enable){
         if(enable){
             ScanFilter scanFilter = new ScanFilter.Builder().setServiceUuid(ParcelUuid.fromString("ffffffff-ffff-ffff-ffff-fffffffffff0")).build();     // uuid로 필터링
-
             filters = new ArrayList<ScanFilter>();
             filters.add(scanFilter);
+
+            //ble꺼지면 탐지하기 위해 setting에 setCallbackType 추가해야됨. api레벨이 23이라 못달았음.
             settings = new ScanSettings.Builder().build();
 
             mLEScanner.startScan(filters,settings,mLeScanCallBack);
@@ -172,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
-Log.i("seung", "in call back, callBackType - " + callbackType);
+
             BluetoothDevice device = result.getDevice();
 
             int deviceMajorClass = device.getBluetoothClass().getMajorDeviceClass();
@@ -284,14 +294,61 @@ Log.i("seung", "in call back, callBackType - " + callbackType);
         if (id == R.id.action_bleOn) {
             Toast.makeText(getApplicationContext(), "BLE on", Toast.LENGTH_SHORT).show();
 
-            return true;
-        }
-        else if (id == R.id.action_setProgram) {
-            Toast.makeText(getApplicationContext(), "program setting", Toast.LENGTH_SHORT).show();
-
-            return true;
+            LightUpTask lightUpTask = new LightUpTask();
+            lightUpTask.execute();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private class LightUpTask extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected Void doInBackground(Void... arg0) {
+            HttpURLConnection conn = null;
+            try {
+                String body = "UserID=...&Password=...&BLE_Status=...";            // POST로 보낼 내용 정의
+                URL serverUrl = new URL("http://202.31.200.180:3000/API/BLE");                 // 서버 URL 정의
+
+                conn = (HttpURLConnection) serverUrl.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setDoInput(true);
+                conn.setDoOutput(true);
+                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+                OutputStream os = conn.getOutputStream();
+                os.write( body.getBytes("euc-kr") );
+                os.flush();
+                os.close();
+
+                int status = conn.getResponseCode();
+                Log.i("seung", "status code - " + Integer.toString(status));
+
+                BufferedReader br = new BufferedReader( new InputStreamReader( conn.getInputStream(), "EUC-KR" ), conn.getContentLength() );
+                Log.i("seung", "log - " + br.toString());
+                br.close();
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.i("seung", "error >> " + e.toString());
+
+            } finally {
+                if(conn != null) {
+                    conn.disconnect();
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+        }
     }
 }

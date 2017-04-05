@@ -7,9 +7,4 @@
         android:orderInCategory="100"
         android:title="BLE on"
         app:showAsAction="never" />
-    <item
-        android:id="@+id/action_setProgram"
-        android:orderInCategory="100"
-        android:title="program setting"
-        app:showAsAction="never" />
 </menu>

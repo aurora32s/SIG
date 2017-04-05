@@ -9,6 +9,7 @@ import android.bluetooth.le.ScanFilter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -17,8 +18,10 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+<<<<<<< HEAD
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +29,12 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+=======
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.WindowManager;
+import android.widget.ArrayAdapter;
+>>>>>>> origin/master
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,7 +53,10 @@ import com.larswerkman.holocolorpicker.SVBar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+<<<<<<< HEAD
 import org.json.JSONObject;
+=======
+>>>>>>> origin/master
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -364,11 +376,19 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
         //tmp = tmp.substring(2, 8);
         //Log.i("seung", "modi - " + tmp.toString());
 
+<<<<<<< HEAD
 //        //변경 후 코드
 //        characteristic.setValue(Integer.toHexString(color).substring(2, 8));
 //        mBluetoothLeService.writeCharacteristic(characteristic);
 
        // 변경 전 코드
+=======
+        //변경 후 코드
+        //characteristic.setValue(Integer.toHexString(color).substring(2, 8));
+        //mBluetoothLeService.writeCharacteristic(characteristic);
+
+        //변경 전 코드
+>>>>>>> origin/master
         characteristic.setValue(Integer.toHexString(color));
         mBluetoothLeService.writeCharacteristic(characteristic);
     }
@@ -419,5 +439,111 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
         return intentFilter;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_color, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_setPreset) {
+            JSONArray presetList = new JSONArray();
+
+            SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
+            SharedPreferences.Editor editor = pref.edit();
+
+            if(pref.getString("preset", null) == null) {                // 저장된 쉐어드프리퍼런스가 없으면 새로운 배열을 쉐어드프리퍼런스에 저장
+                presetList.put(String.valueOf(picker.getColor()));
+                editor.putString("preset", presetList.toString());
+            }
+            else{                                                          // 저장된 쉐어드프리퍼런스가 있으면 기존의 배열을 꺼내 저장
+                try {
+                    String presetStr = pref.getString("preset", null);
+                    presetList = new JSONArray(presetStr);
+
+                    presetList.put(String.valueOf(picker.getColor()));
+                    editor.putString("preset", presetList.toString());
+                } catch (JSONException e){
+                    e.printStackTrace();
+                    Log.i("seung", "error in preference " + e.toString());
+                }
+            }
+            editor.apply();
+
+            AlertDialog.Builder setPresetDialogBuilder = new AlertDialog.Builder(this);            // 알림용 다이얼로그
+            setPresetDialogBuilder.setMessage("Preset is saved.");
+            setPresetDialogBuilder.setPositiveButton("Confirm", null);
+
+            AlertDialog setPersetDialog = setPresetDialogBuilder.create();
+            setPersetDialog.setTitle("Preset");
+            setPersetDialog.show();
+        }
+        else if (id == R.id.action_getPreset) {
+            JSONArray presetList = null;
+
+            try {
+                SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);        // 쉐어드프리퍼런스에서 presetList로 저장된 값을 가져옴
+                String presetStr = pref.getString("preset", null);
+                presetList = new JSONArray(presetStr);
+            } catch(JSONException e) {
+                e.printStackTrace();
+                Log.i("seung", "json error - " + e.toString());
+            } catch(NullPointerException e) {           // 저장된 쉐어드프리퍼런스가 없을 경우 에러 처리
+                e.printStackTrace();
+                return false;
+            }
+
+            AlertDialog.Builder getPresetDialogBuilder = new AlertDialog.Builder(ColorActivity.this);
+            getPresetDialogBuilder.setTitle("Choose preset.");
+
+            // 어댑터에 쉐어드프리퍼런스의 저장된 값들 넣음
+            final ArrayAdapter<String> adapter = new ArrayAdapter<String>(ColorActivity.this, android.R.layout.select_dialog_singlechoice);
+            try {
+                for (int i = 0; i < presetList.length(); i++) {
+                    adapter.add(presetList.get(i).toString());
+                }
+            } catch(JSONException e) {
+                e.printStackTrace();
+                Log.i("seung", "json error - " + e.toString());
+            }
+
+
+            // 어댑터를 다이얼로그에 세팅
+            getPresetDialogBuilder.setAdapter(adapter, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {           // 다이얼로그 선택에 따른 이벤트 처리
+                    picker.setColor(Integer.valueOf(adapter.getItem(id)));
+                }
+            });
+
+            // cancle 버튼 추가
+            getPresetDialogBuilder.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+
+
+
+
+
+
+
+            // 다이얼로그 빌더를 다이얼로그에 세팅
+            AlertDialog getPersetDialog = getPresetDialogBuilder.create();
+            getPersetDialog.setTitle("Preset");
+            getPersetDialog.show();
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }
