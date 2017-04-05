@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -79,6 +80,9 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
     protected ArrayList<CaseInfo> mArray = new ArrayList<CaseInfo>();
     protected ListView mList;
     protected CaseAdapter mAdapter;
+
+    SharedPreferences pref;
+    SharedPreferences.Editor editor;
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -157,6 +161,9 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
 
         picker.setOnColorChangedListener(this);         // 컬러 선택시 컬러값 전송을 위한 리스너 --seung
 
+        pref = getApplication().getSharedPreferences("pref",getApplicationContext().MODE_PRIVATE);
+        editor = pref.edit();
+
         //Case ListView
         mAdapter = new CaseAdapter(this,R.layout.case_item);
         mList = (ListView)findViewById(R.id.case_list);
@@ -173,7 +180,7 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
             }
         });
 
-        requestCase();
+        //requestCase();
 
     }
 
@@ -271,42 +278,16 @@ public class ColorActivity extends AppCompatActivity implements OnColorChangedLi
 
     private void requestCase(){
 
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url ="http://202.31.200.180:3000/API/case";
-
-        //Toast.makeText(getApplicationContext(),"RequestCase",Toast.LENGTH_LONG).show();
-
-        JsonArrayRequest request = new JsonArrayRequest(url,
-                new Response.Listener<JSONArray>() {
-                    @Override
-                    public void onResponse(JSONArray response) {
-                        toast("Request JsonArrayRequest");
-                        Log.i("OnResponse",response.toString());
-
-                        for(int i =0 ; i<response.length();i++){
-                            try{
-                                JSONObject object = response.getJSONObject(i);
-
-                                int id=object.getInt("case_id");
-                                String name=object.getString("case_name");
-
-                                mArray.add(new CaseInfo(id,name));
-
-                            }catch (JSONException e){
-                                Log.i("JsonError",e.getMessage().toString());
-                            }
-
-                            mAdapter.notifyDataSetChanged();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.i("VolleyError",error.getMessage().toString());
+        String strList = pref.getString("preset","");
+        try{
+            JSONArray tmpArr = new JSONArray(strList);
+            for(int i=0;i<tmpArr.length();i++){
+                Log.i("JSONArray","json : "+tmpArr.optString(i));
             }
-        });
-
-        queue.add(request);
+        }catch (JSONException e){
+            e.printStackTrace();
+            Log.i("JSONException","Error : "+e.toString());
+        }
     }
 
     private class ConnectingTask extends AsyncTask<Void, Void, Void> {          // 프로그레스 다이얼로그 사용
